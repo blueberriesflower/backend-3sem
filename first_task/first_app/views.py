@@ -7,6 +7,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import CustomUserCreationForm
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+import json
+from .models import CustomUser 
 
 def index(request):
     return HttpResponse("Hello, world!")
@@ -64,3 +68,48 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('index')
+
+def user_create(request): #POST
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            username = data['username']
+            email = data['email']
+            password = data['password']
+            user = CustomUser.objects.create_user(username=username, email=email, password=password)
+            return JsonResponse({'message': 'User created successfully', 'id': user.id}, status=201)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    else:
+        return JsonResponse({'error': 'Invalid method'}, status=400)
+
+def user_detail(request, user_id): #GET
+    user = get_object_or_404(CustomUser, pk=user_id)
+    data = {'id': user.id, 'username': user.username, 'email': user.email}
+    return JsonResponse(data)
+
+def user_update(request, user_id): #PUT/PATCH
+   if request.method == 'PUT':
+       try:
+           user = get_object_or_404(CustomUser, pk=user_id)
+           data = json.loads(request.body)
+           user.username = data.get('username', user.username)
+           user.email = data.get('email', user.email)
+           user.save()
+           return JsonResponse({'message': 'User updated successfully'})
+       except Exception as e:
+           return JsonResponse({'error': str(e)}, status=400)
+   else:
+       return JsonResponse({'error': 'Invalid method'}, status=400)
+   
+def user_delete(request, user_id): #DELETE
+    if request.method == 'DELETE':
+        try:
+            user = get_object_or_404(CustomUser, pk=user_id)
+            user.delete()
+            return JsonResponse({'message': 'User deleted successfully'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    else:
+        return JsonResponse({'error': 'Invalid method'}, status=400)
+    

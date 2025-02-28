@@ -11,4 +11,8 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    path('users/', views.user_create, name='user-create'), # POST
+    path('users/<int:user_id>/', views.user_detail, name='user-detail'), # GET
+    path('users/<int:user_id>/', views.user_update, name='user-update'), # PUT/PATCH
+    path('users/<int:user_id>/', views.user_delete, name='user-delete'), # DELETE
 ]
